@@ -1,9 +1,13 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from 'react';
+import html2canvas from 'html2canvas';
+import jsPDF from 'jspdf';
 import { Invoice, Item } from '../types/invoice';
 import { calculateSubtotal, calculateTax, calculateTotal } from '../utils/calculations';
-import InvoiceActions from '../components/InvoiceActions';
+import InvoicePreview from '../components/InvoicePreview';
+import Navbar from '../components/Navbar';
+import Footer from '../components/Footer';
 
 export default function Home() {
   const invoiceRef = useRef<HTMLDivElement>(null);
@@ -35,12 +39,15 @@ export default function Home() {
   const handleItemChange = (index: number, e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     const items = [...invoice.items];
-    const item = items[index];
+    const updatedItem = { ...items[index] };
+
     if (name === 'quantity' || name === 'price') {
-      item[name] = parseFloat(value) || 0;
-    } else {
-      item[name] = value;
+      updatedItem[name] = parseFloat(value) || 0;
+    } else if (name === 'description') {
+      updatedItem[name] = value;
     }
+
+    items[index] = updatedItem;
     setInvoice({ ...invoice, items });
   };
 
@@ -57,141 +64,164 @@ export default function Home() {
     setInvoice({ ...invoice, items });
   };
 
+  const handleDownloadPDF = () => {
+    if (invoiceRef.current) {
+      html2canvas(invoiceRef.current).then((canvas) => {
+        const imgData = canvas.toDataURL('image/png');
+        const pdf = new jsPDF();
+        const imgProps = pdf.getImageProperties(imgData);
+        const pdfWidth = pdf.internal.pageSize.getWidth();
+        const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
+        pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+        pdf.save('invoice.pdf');
+      });
+    }
+  };
+
   return (
-    <div className="container mx-auto p-8">
-      <div ref={invoiceRef} className="bg-white shadow-md rounded-lg p-8">
-        <h1 className="text-3xl font-bold mb-8">Invoice Generator</h1>
+    <>
+      <Navbar onDownloadPDF={handleDownloadPDF} />
+      <main className="bg-background min-h-screen">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 p-8">
+          {/* Left Column: Invoice Form */}
+          <div className="bg-white dark:bg-gray-800 shadow-lg rounded-xl p-8">
+            {/* Company and Client Information */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
+              <div>
+                <h2 className="text-xl font-semibold mb-4 text-text dark:text-white">Your Company</h2>
+                <div className="mb-4">
+                  <label htmlFor="logo" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Logo</label>
+                  <input type="file" id="logo" className="w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-primary focus:border-primary dark:bg-gray-700 dark:border-gray-600 dark:text-white" />
+                </div>
+                <div>
+                  <label htmlFor="companyName" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Company Name</label>
+                  <input
+                    type="text"
+                    id="companyName"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-primary focus:border-primary dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                    value={invoice.companyName}
+                    onChange={handleInvoiceChange}
+                  />
+                </div>
+              </div>
+              <div>
+                <h2 className="text-xl font-semibold mb-4 text-text dark:text-white">Client Information</h2>
+                <div>
+                  <label htmlFor="clientName" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Client Name</label>
+                  <input
+                    type="text"
+                    id="clientName"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-primary focus:border-primary dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                    value={invoice.clientName}
+                    onChange={handleInvoiceChange}
+                  />
+                </div>
+              </div>
+            </div>
 
-        {/* Company and Client Information */}
-        <div className="grid grid-cols-2 gap-8 mb-8">
-          <div>
-            <h2 className="text-xl font-semibold mb-4">Your Company</h2>
-            <div className="flex items-center mb-4">
-              <label htmlFor="logo" className="w-32">Logo:</label>
-              <input type="file" id="logo" className="border p-2 rounded w-full" />
-            </div>
-            <div className="flex items-center mb-4">
-              <label htmlFor="companyName" className="w-32">Company Name:</label>
-              <input
-                type="text"
-                id="companyName"
-                className="border p-2 rounded w-full"
-                value={invoice.companyName}
-                onChange={handleInvoiceChange}
-              />
-            </div>
-          </div>
-          <div>
-            <h2 className="text-xl font-semibold mb-4">Client Information</h2>
-            <div className="flex items-center mb-4">
-              <label htmlFor="clientName" className="w-32">Client Name:</label>
-              <input
-                type="text"
-                id="clientName"
-                className="border p-2 rounded w-full"
-                value={invoice.clientName}
-                onChange={handleInvoiceChange}
-              />
-            </div>
-          </div>
-        </div>
-
-        {/* Invoice Items */}
-        <div>
-          <h2 className="text-xl font-semibold mb-4">Invoice Items</h2>
-          <div className="border-b-2 pb-2 mb-4">
-            <div className="grid grid-cols-5 gap-4 font-bold">
-              <div>Description</div>
-              <div>Quantity</div>
-              <div>Price</div>
-              <div>Total</div>
-              <div></div>
-            </div>
-          </div>
-          {invoice.items.map((item, index) => (
-            <div key={index} className="grid grid-cols-5 gap-4 mb-4">
-              <input
-                type="text"
-                name="description"
-                placeholder="Description"
-                className="border p-2 rounded"
-                value={item.description}
-                onChange={(e) => handleItemChange(index, e)}
-              />
-              <input
-                type="number"
-                name="quantity"
-                placeholder="Quantity"
-                className="border p-2 rounded"
-                value={item.quantity}
-                onChange={(e) => handleItemChange(index, e)}
-              />
-              <input
-                type="number"
-                name="price"
-                placeholder="Price"
-                className="border p-2 rounded"
-                value={item.price}
-                onChange={(e) => handleItemChange(index, e)}
-              />
-              <div>${(item.quantity * item.price).toFixed(2)}</div>
-              <button className="text-red-500" onClick={() => removeItem(index)}>
-                Remove
+            {/* Invoice Items */}
+            <div>
+              <h2 className="text-xl font-semibold mb-4 text-text dark:text-white">Invoice Items</h2>
+              <div className="border-b-2 border-gray-200 dark:border-gray-700 pb-2 mb-4">
+                <div className="grid grid-cols-5 gap-4 font-bold text-gray-600 dark:text-gray-300">
+                  <div className="col-span-2">Description</div>
+                  <div>Quantity</div>
+                  <div>Price</div>
+                  <div></div>
+                </div>
+              </div>
+              {invoice.items.map((item, index) => (
+                <div key={index} className="grid grid-cols-5 gap-4 mb-4 items-center">
+                  <input
+                    type="text"
+                    name="description"
+                    placeholder="Description"
+                    className="col-span-2 w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-primary focus:border-primary dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                    value={item.description}
+                    onChange={(e) => handleItemChange(index, e)}
+                  />
+                  <input
+                    type="number"
+                    name="quantity"
+                    placeholder="1"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-primary focus:border-primary dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                    value={item.quantity}
+                    onChange={(e) => handleItemChange(index, e)}
+                  />
+                  <input
+                    type="number"
+                    name="price"
+                    placeholder="$0.00"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-primary focus:border-primary dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                    value={item.price}
+                    onChange={(e) => handleItemChange(index, e)}
+                  />
+                  <button className="text-red-500 hover:text-red-700" onClick={() => removeItem(index)}>
+                    Remove
+                  </button>
+                </div>
+              ))}
+              <button className="bg-gradient-to-r from-primary to-accent text-white px-4 py-2 rounded-lg hover:opacity-90 transition-opacity" onClick={addItem}>
+                Add Item
               </button>
             </div>
-          ))}
-          <button className="bg-blue-500 text-white px-4 py-2 rounded" onClick={addItem}>
-            Add Item
-          </button>
-        </div>
 
-        {/* Totals and Notes */}
-        <div className="grid grid-cols-2 gap-8 mt-8">
-          <div>
-            <h2 className="text-xl font-semibold mb-4">Notes</h2>
-            <textarea
-              id="notes"
-              className="border p-2 rounded w-full"
-              rows={4}
-              value={invoice.notes}
-              onChange={handleInvoiceChange}
-            ></textarea>
-          </div>
-          <div>
-            <h2 className="text-xl font-semibold mb-4">Totals</h2>
-            <div className="flex justify-between mb-2">
-              <div>Subtotal:</div>
-              <div>${subtotal.toFixed(2)}</div>
-            </div>
-            <div className="flex items-center justify-between mb-2">
-              <div className="flex items-center">
-                Tax (%):
-                <input
-                  type="number"
-                  className="border p-1 rounded w-20 ml-2"
-                  value={taxRate}
-                  onChange={(e) => setTaxRate(parseFloat(e.target.value) || 0)}
-                />
+            {/* Totals and Notes */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mt-8">
+              <div>
+                <h2 className="text-xl font-semibold mb-4 text-text dark:text-white">Notes</h2>
+                <textarea
+                  id="notes"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-primary focus:border-primary dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                  rows={4}
+                  value={invoice.notes}
+                  onChange={handleInvoiceChange}
+                ></textarea>
               </div>
-              <div>${tax.toFixed(2)}</div>
+              <div>
+                <h2 className="text-xl font-semibold mb-4 text-text dark:text-white">Totals</h2>
+                <div className="flex justify-between mb-2 text-gray-700 dark:text-gray-300">
+                  <div>Subtotal:</div>
+                  <div>${subtotal.toFixed(2)}</div>
+                </div>
+                <div className="flex items-center justify-between mb-2 text-gray-700 dark:text-gray-300">
+                  <div className="flex items-center">
+                    Tax (%):
+                    <input
+                      type="number"
+                      className="w-20 ml-2 px-3 py-1 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-primary focus:border-primary dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                      value={taxRate}
+                      onChange={(e) => setTaxRate(parseFloat(e.target.value) || 0)}
+                    />
+                  </div>
+                  <div>${tax.toFixed(2)}</div>
+                </div>
+                <div className="flex justify-between font-bold text-xl text-text dark:text-white">
+                  <div>Total:</div>
+                  <div>${total.toFixed(2)}</div>
+                </div>
+              </div>
             </div>
-            <div className="flex justify-between font-bold text-xl">
-              <div>Total:</div>
-              <div>${total.toFixed(2)}</div>
+
+            {/* Signature */}
+            <div className="mt-8">
+              <h2 className="text-xl font-semibold mb-4 text-text dark:text-white">Signature</h2>
+              <div className="border border-gray-300 rounded-lg p-4">
+                {/* Signature Pad will go here */}
+              </div>
+            </div>
+          </div>
+
+          {/* Right Column: Invoice Preview */}
+          <div className="bg-white dark:bg-gray-800 shadow-lg rounded-xl p-8">
+            <h2 className="text-2xl font-bold mb-4 text-text dark:text-white">Invoice Preview</h2>
+            <div ref={invoiceRef}>
+              <InvoicePreview invoice={invoice} subtotal={subtotal} tax={tax} total={total} />
             </div>
           </div>
         </div>
-
-        {/* Signature */}
-        <div className="mt-8">
-          <h2 className="text-xl font-semibold mb-4">Signature</h2>
-          <div className="border p-4 rounded">
-            {/* Signature Pad will go here */}
-          </div>
-        </div>
-
-        <InvoiceActions invoiceRef={invoiceRef} />
-      </div>
-    </div>
+      </main>
+      <Footer />
+    </>
   );
 }
