@@ -25,26 +25,28 @@ const InvoicePreview: React.FC<InvoicePreviewProps> = ({ invoice, subtotal, tax,
         </div>
       </div>
 
-      <table className="w-full mb-8">
-        <thead>
-          <tr className="border-b">
-            <th className="text-left py-2">Description</th>
-            <th className="text-right py-2">Quantity</th>
-            <th className="text-right py-2">Price</th>
-            <th className="text-right py-2">Total</th>
-          </tr>
-        </thead>
-        <tbody>
-          {invoice.items.map((item, index) => (
-            <tr key={index} className="border-b">
-              <td className="py-2">{item.description}</td>
-              <td className="text-right py-2">{item.quantity}</td>
-              <td className="text-right py-2">${item.price.toFixed(2)}</td>
-              <td className="text-right py-2">${(item.quantity * item.price).toFixed(2)}</td>
+      <div className="overflow-x-auto">
+        <table className="w-full mb-8">
+          <thead>
+            <tr className="border-b">
+              <th className="text-left py-2 px-4">Description</th>
+              <th className="text-right py-2 px-4">Quantity</th>
+              <th className="text-right py-2 px-4">Price</th>
+              <th className="text-right py-2 px-4">Total</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {invoice.items.map((item, index) => (
+              <tr key={index} className="border-b">
+                <td className="py-2 px-4">{item.description}</td>
+                <td className="text-right py-2 px-4">{item.quantity}</td>
+                <td className="text-right py-2 px-4">${item.price.toFixed(2)}</td>
+                <td className="text-right py-2 px-4">${(item.quantity * item.price).toFixed(2)}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
 
       <div className="flex justify-end mb-8">
         <div className="w-64">

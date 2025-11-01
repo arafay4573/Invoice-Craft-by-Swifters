@@ -8,6 +8,7 @@ import { calculateSubtotal, calculateTax, calculateTotal } from '../utils/calcul
 import InvoicePreview from '../components/InvoicePreview';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
+import { Faq } from '../components/Faq';
 
 export default function Home() {
   const invoiceRef = useRef<HTMLDivElement>(null);
@@ -82,13 +83,23 @@ export default function Home() {
     <>
       <Navbar onDownloadPDF={handleDownloadPDF} />
       <main className="bg-background min-h-screen">
+        <section className="text-center p-8">
+          <h1 className="text-4xl font-bold text-text dark:text-white">Free Online Invoice Generator</h1>
+          <h2 className="text-2xl text-gray-600 dark:text-gray-300 mt-2">Create, Preview, and Download Your Invoice Instantly</h2>
+          <p className="mt-4 max-w-2xl mx-auto text-gray-700 dark:text-gray-400">
+            InvoiceCraft is a free and easy-to-use online invoice generator for freelancers, small businesses, and individuals.
+            Create professional invoices in seconds, customize them with your own branding, and download them as a PDF without any subscriptions or sign-ups.
+          </p>
+        </section>
+
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 p-8">
           {/* Left Column: Invoice Form */}
           <div className="bg-white dark:bg-gray-800 shadow-lg rounded-xl p-8">
+            <h3 className="text-2xl font-bold mb-8 text-text dark:text-white">Why Choose InvoiceCraft by Swifters</h3>
             {/* Company and Client Information */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
               <div>
-                <h2 className="text-xl font-semibold mb-4 text-text dark:text-white">Your Company</h2>
+                <h4 className="text-xl font-semibold mb-4 text-text dark:text-white">Your Company</h4>
                 <div className="mb-4">
                   <label htmlFor="logo" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Logo</label>
                   <input type="file" id="logo" className="w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-primary focus:border-primary dark:bg-gray-700 dark:border-gray-600 dark:text-white" />
@@ -105,7 +116,7 @@ export default function Home() {
                 </div>
               </div>
               <div>
-                <h2 className="text-xl font-semibold mb-4 text-text dark:text-white">Client Information</h2>
+                <h4 className="text-xl font-semibold mb-4 text-text dark:text-white">Client Information</h4>
                 <div>
                   <label htmlFor="clientName" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Client Name</label>
                   <input
@@ -121,7 +132,7 @@ export default function Home() {
 
             {/* Invoice Items */}
             <div>
-              <h2 className="text-xl font-semibold mb-4 text-text dark:text-white">Invoice Items</h2>
+              <h4 className="text-xl font-semibold mb-4 text-text dark:text-white">Invoice Items</h4>
               <div className="border-b-2 border-gray-200 dark:border-gray-700 pb-2 mb-4">
                 <div className="grid grid-cols-5 gap-4 font-bold text-gray-600 dark:text-gray-300">
                   <div className="col-span-2">Description</div>
@@ -169,7 +180,7 @@ export default function Home() {
             {/* Totals and Notes */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mt-8">
               <div>
-                <h2 className="text-xl font-semibold mb-4 text-text dark:text-white">Notes</h2>
+                <h4 className="text-xl font-semibold mb-4 text-text dark:text-white">Notes</h4>
                 <textarea
                   id="notes"
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-primary focus:border-primary dark:bg-gray-700 dark:border-gray-600 dark:text-white"
@@ -179,7 +190,7 @@ export default function Home() {
                 ></textarea>
               </div>
               <div>
-                <h2 className="text-xl font-semibold mb-4 text-text dark:text-white">Totals</h2>
+                <h4 className="text-xl font-semibold mb-4 text-text dark:text-white">Totals</h4>
                 <div className="flex justify-between mb-2 text-gray-700 dark:text-gray-300">
                   <div>Subtotal:</div>
                   <div>${subtotal.toFixed(2)}</div>
@@ -205,7 +216,7 @@ export default function Home() {
 
             {/* Signature */}
             <div className="mt-8">
-              <h2 className="text-xl font-semibold mb-4 text-text dark:text-white">Signature</h2>
+              <h4 className="text-xl font-semibold mb-4 text-text dark:text-white">Signature</h4>
               <div className="border border-gray-300 rounded-lg p-4">
                 {/* Signature Pad will go here */}
               </div>
@@ -220,6 +231,8 @@ export default function Home() {
             </div>
           </div>
         </div>
+
+        <Faq />
       </main>
       <Footer />
     </>
