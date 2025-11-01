@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import './globals.css';
-import { ThemeProvider } from '../components/ThemeProvider';
+import Providers from '../components/Providers';
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://invoicecraft.vercel.app'),
@@ -78,9 +78,9 @@ export default function RootLayout({
         />
       </head>
       <body className="flex flex-col min-h-screen">
-        <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+        <Providers>
           <div className="flex-grow">{children}</div>
-        </ThemeProvider>
+        </Providers>
       </body>
     </html>
   );

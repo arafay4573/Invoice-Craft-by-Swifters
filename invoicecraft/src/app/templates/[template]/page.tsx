@@ -4,15 +4,24 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useSession } from 'next-auth/react';
 import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
-import { Invoice, Item } from '../types/invoice';
-import { Client } from '../types/client';
-import { calculateSubtotal, calculateTax, calculateTotal } from '../utils/calculations';
-import InvoicePreview from '../components/InvoicePreview';
-import Navbar from '../components/Navbar';
-import Footer from '../components/Footer';
-import { Faq } from '../components/Faq';
+import { Invoice, Item } from '../../../types/invoice';
+import { Client } from '../../../types/client';
+import { calculateSubtotal, calculateTax, calculateTotal } from '../../../utils/calculations';
+import InvoicePreview from '../../../components/InvoicePreview';
+import Navbar from '../../../components/Navbar';
+import Footer from '../../../components/Footer';
+import { Faq } from '../../../components/Faq';
+import type { Metadata } from 'next';
 
-export default function Home() {
+export async function generateMetadata({ params }: { params: { template: string } }): Promise<Metadata> {
+  const title = params.template.charAt(0).toUpperCase() + params.template.slice(1);
+  return {
+    title: `Free Online ${title} Generator | InvoiceCraft`,
+    description: `Create and download professional ${params.template}s for free with InvoiceCraft.`,
+  };
+}
+
+export default function TemplatePage({ params }: { params: { template: string } }) {
   const { data: session } = useSession();
   const invoiceRef = useRef<HTMLDivElement>(null);
   const [invoice, setInvoice] = useState<Invoice>({
@@ -93,7 +102,7 @@ export default function Home() {
         const pdfWidth = pdf.internal.pageSize.getWidth();
         const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
         pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
-        pdf.save('invoice.pdf');
+        pdf.save(`${params.template}.pdf`);
       });
     }
   };
@@ -120,23 +129,25 @@ export default function Home() {
     }
   };
 
+  const title = params.template.charAt(0).toUpperCase() + params.template.slice(1);
+
   return (
     <>
       <Navbar onDownloadPDF={handleDownloadPDF} />
       <main className="bg-background min-h-screen">
         <section className="text-center p-8">
-          <h1 className="text-4xl font-bold text-text dark:text-white">Free Online Invoice Generator</h1>
-          <h2 className="text-2xl text-gray-600 dark:text-gray-300 mt-2">Create, Preview, and Download Your Invoice Instantly</h2>
+          <h1 className="text-4xl font-bold text-text dark:text-white">Free Online {title} Generator</h1>
+          <h2 className="text-2xl text-gray-600 dark:text-gray-300 mt-2">Create, Preview, and Download Your {title} Instantly</h2>
           <p className="mt-4 max-w-2xl mx-auto text-gray-700 dark:text-gray-400">
-            InvoiceCraft is a free and easy-to-use online invoice generator for freelancers, small businesses, and individuals.
-            Create professional invoices in seconds, customize them with your own branding, and download them as a PDF without any subscriptions or sign-ups.
+            InvoiceCraft is a free and easy-to-use online tool for freelancers, small businesses, and individuals.
+            Create professional {params.template}s in seconds, customize them with your own branding, and download them as a PDF without any subscriptions or sign-ups.
           </p>
         </section>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 p-8">
           {/* Left Column: Invoice Form */}
           <div className="bg-white dark:bg-gray-800 shadow-lg rounded-xl p-8">
-            <h3 className="text-2xl font-bold mb-8 text-text dark:text-white">Why Choose InvoiceCraft by Swifters</h3>
+            <h3 className="text-2xl font-bold mb-8 text-text dark:text-white">Your {title} Details</h3>
             {/* Company and Client Information */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
               <div>
@@ -190,7 +201,7 @@ export default function Home() {
 
             {/* Invoice Items */}
             <div>
-              <h4 className="text-xl font-semibold mb-4 text-text dark:text-white">Invoice Items</h4>
+              <h4 className="text-xl font-semibold mb-4 text-text dark:text-white">{title} Items</h4>
               <div className="border-b-2 border-gray-200 dark:border-gray-700 pb-2 mb-4">
                 <div className="grid grid-cols-5 gap-4 font-bold text-gray-600 dark:text-gray-300">
                   <div className="col-span-2">Description</div>
@@ -286,7 +297,7 @@ export default function Home() {
                   className="bg-gradient-to-r from-primary to-accent text-white px-6 py-3 rounded-lg hover:opacity-90 transition-opacity w-full"
                   onClick={handleSaveInvoice}
                 >
-                  Save Invoice
+                  Save {title}
                 </button>
               </div>
             )}
@@ -294,7 +305,7 @@ export default function Home() {
 
           {/* Right Column: Invoice Preview */}
           <div className="bg-white dark:bg-gray-800 shadow-lg rounded-xl p-8">
-            <h2 className="text-2xl font-bold mb-4 text-text dark:text-white">Invoice Preview</h2>
+            <h2 className="text-2xl font-bold mb-4 text-text dark:text-white">{title} Preview</h2>
             <div ref={invoiceRef}>
               <InvoicePreview invoice={invoice} subtotal={subtotal} tax={tax} total={total} />
             </div>
